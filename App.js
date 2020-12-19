@@ -1,64 +1,168 @@
 
 import React, { useState } from 'react';
-import { StyleSheet,Button, Text, View, TouchableOpacity,Modal,TouchableHighlight, TextInput, TouchableWithoutFeedback} from "react-native";
-import { StatusBar } from 'expo-status-bar';
-import { disableExpoCliLogging } from 'expo/build/logs/Logs';
+import { StyleSheet,Text, View, TouchableOpacity, TextInput, Button} from "react-native";
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';   
+import { DataTable} from 'react-native-paper';
+import DrawerLayout from 'react-native-gesture-handler/DrawerLayout';
 
 
-export default function App() {
-  const [priceText,setPriceText]=useState(false);
-  const [discountPercentText,setDiscountText]=useState(false);
+var h = [];
+var c = [];
+const Stack = createStackNavigator();
+
+function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator 
+      initialRouteName="homeScreen"
+      screenOptions ={{
+        headerTitleAlign:"center",
+            headerTintColor:'orange',
+            headerStyle: {
+              backgroundColor:'red',
+
+            }
+      }
+
+      }
+      >
+        <Stack.Screen 
+        name="homeScreen" 
+        component={HomeScreen}
+        options={
+          {
+            title:"Welcome",
+            headerTintColor:'white',
+             headerStyle: {
+               backgroundColor:'#12594a',
+
+             },
+        
+
+          }
+          
+        }
+         />
+        <Stack.Screen 
+        name="StartScreen" 
+        component={StartScreen}
+        options={({ navigation }) => ({
+          title: "Discount Application",
+          headerTitleAlign: 'center',
+          headerTintColor: 'white',
+          headerStyle: {
+            backgroundColor:'#12594a',
+          },
+          headerRight: () => (
+            <Button
+              title="History"
+              onPress={() => navigation.navigate('MyComponent', {history:h})}
+              color='maroon'
+            ><Text></Text></Button>
+            
+            )
+        })}
+      
+          
+        />
+        <Stack.Screen 
+        name="MyComponent" 
+        component={MyComponent}
+        options={
+          {
+            title:"History",
+            headerTintColor:'white',
+             headerStyle: {
+               backgroundColor:'#12594a',
+
+             },
+        
+
+          }
+          
+        }
+         />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+const HomeScreen = ({navigation}) => {
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity 
+      style={styles.b1}
+      activeOpacity={0.2} 
+      onPress={() => navigation.navigate('StartScreen')}>
+      <Text>Lets Begin</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const StartScreen = ({navigation}) => {
   const [price,setNewPrice]=useState('');
+  const [t,setT]=useState(/^[0-9\b]+$/);
   const [discountPercent,setDiscountPercent]=useState('');
-  const [discountedPrice,setDiscountPrice]=useState('');
-  const [history,setHistory]=useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [discountedPrice,setDiscountedPrice]=useState('');
   const [discountResult, setDiscountResult] = useState('');
+  const [saveButton,setSaveButton]=useState(false);
+  const [clearButton,setClearButton]=useState(true);
+  const [history,setHistory] = useState([]);
+  var array = [price,discountPercent,discountedPrice];
 
-  const handleInputs=(e)=>{
-    if(priceText){
-      setNewPrice(price+e)
+  
+  const handlePriceInput=(text)=>{
+    setNewPrice(text)
+    if(!t.test(text)){
+      alert('Please Enter Positive Number Only')
+      setNewPrice('')
     }
-    else if(discountPercentText){
-      setDiscountPercent(discountPercent+e)
-    }
-
   }
+
+  const handleDiscountInput=(text)=>{
+    setDiscountPercent(text)
+    if(!t.test(text)){
+      alert('Please Enter Positive Number Only')
+      setDiscountPercent('')
+    }
+    else if(text >=100){
+      alert('Discount Cannot be Greater than 100%')
+      setDiscountPercent('')
+
+    }
+  }
+    
+    
+
+  
 
   const clearText=()=>{
     setNewPrice('')
     setDiscountPercent('')
-    setDiscountPrice('')
-    setDiscountResult('');
+    setDiscountedPrice('')
+    setDiscountResult('')
+    setSaveButton(false)
+    setClearButton(true)
     
   }
 
-  const DeleteChar=()=>{
-    if(priceText){
-      setNewPrice(price.slice(0,-1))
-      setDiscountPrice('')
-
-    }
-    else if(discountPercentText){
-      setDiscountPercent(discountPercent.slice(0,-1))
-      setDiscountPrice('')
-
-    }
-
-  }
-
   const discountFunc =()=>{
+    setClearButton(false)
     if(price==''){
       alert('Please Enter Item Price')
     }
-    else if(discountPercent==""){
+    else if(discountPercent==''){
       alert('Please Enter Discount Percentage First')
 
     }
     else if(price!='' && discountPercent!=''){
-      const discount = price -(price * discountPercent/100)
-      var totalDiscount = (price - discount).toFixed(2);
-      setDiscountPrice(discountedPrice+discount)
+      var dis_count = (price -(price * discountPercent/100))
+      var totalSave = (price - dis_count)
+      var discount = dis_count.toFixed(2);
+      var totalDiscount =totalSave.toFixed(2);
+      setDiscountedPrice(discountedPrice+discount)
       setDiscountResult(totalDiscount);
     }
   }
@@ -68,13 +172,12 @@ export default function App() {
 
     
     if(price!=="" && discountPercent !=="" && discountedPrice !==""){
-      var array = [price,discountPercent,discountedPrice];
-
       var newDatawArray = history.slice()
       newDatawArray.push(array)
       setHistory(newDatawArray)
-      console.log(history[0])
+      h = newDatawArray
       alert('New Data Added to History')
+      setSaveButton(true)
 
   }
     else{
@@ -83,275 +186,225 @@ export default function App() {
     }
 
     }
-    
-    
 
   return (
     <View style={styles.container}>
       
       <View>
         <View>
-        <Text style={styles.title}>Discount Calculator App</Text>
-        </View >
-        <View >
-        <Text style={styles.TextComponentStyle} onPress={()=>{setPriceText(true);setDiscountText(false)}}>{price == '' ? "Click on to enter price" : price}</Text>
+        <TextInput 
+        style={styles.TextComponentStyle} 
+        onChangeText={(text)=> handlePriceInput(text)}
+        placeholder="Enter Price"
+        value={price}
+        >
+          
+        </TextInput>
+          
         </View>
 
         <View >
-        <Text
-         style={styles.TextComponentStyle} onPress={()=>{setPriceText(false);setDiscountText(true)}}>{discountPercent==''? "Click on to enter Discount Percent":discountPercent}</Text>
+        <TextInput
+        style={styles.TextComponentStyle}
+        onChangeText={text=>handleDiscountInput(text)}
+        placeholder="Enter Discount Percentage"
+        value={discountPercent}
+        ></TextInput>
+        </View>
+      </View>
+
+      <View style={styles.saveAndDiscountBox}>
+          <Text style={styles.textStyle} >  Discounted Price</Text>
+          <TextInput style={styles.TextComponentStyle}><Text></Text>{discountedPrice}</TextInput>
+          <Text style={styles.textStyle}>  You Saved</Text>
+          <TextInput style={styles.TextComponentStyle}>{discountResult}</TextInput>  
+          </View>
+      <View style={styles.buttonstyle}>
+
+      </View>
+
+      <View style={styles.buttonstyle}>
+        <View>
+        <TouchableOpacity 
+        style={styles.calculateStyle}
+        activeOpacity={0.2}
+        onPress={discountFunc}>
+        <Text 
+        style={styles.buttonText}>Calculate</Text>  
+        </TouchableOpacity>
+        </View>
+        <View >
+        <TouchableOpacity   
+        style={styles.saveColor}
+        activeOpacity={0.2}
+        disabled={saveButton} 
+        onPress={addToHistory}
+        >
+        <Text style={styles.buttonText}>Save</Text></TouchableOpacity>
         </View>
         <View>
-        <Text>Discounted Price</Text>
-        <Text 
-         style={styles.TextComponentStyle}  onPress={()=>{setPriceText(false);setDiscountText(true)}}>{discountedPrice==''? "     ":discountedPrice}</Text>
-      </View>
-        
+          
+        <TouchableOpacity   
+        style={styles.saveColor}
+        activeOpacity={0.2} 
+        onPress={()=>{clearText()}}
+        disabled={clearButton}
+        >
+        <Text style={styles.buttonText}>Clear</Text></TouchableOpacity>
+        </View>
       </View>
       
-      <View>
-      <Text style={styles.result}>{price == null ? <View></View> :'\nYou saved:' +'Rs ' + discountResult}</Text>
-      </View>
-
-      <View style={styles.buttonstyle}>
-        <View style={{width:"32%",marginRight:'1%'}}>
-        <TouchableOpacity style={styles.numberStyle1} onPress={()=>handleInputs("1")}><Text style={styles.numberText}>1</Text></TouchableOpacity>
-        </View>
-
-        <View style={{width:"32%",marginRight:'1%'}}>
-        <TouchableOpacity style={styles.numberStyle1} onPress={()=>handleInputs("2")}><Text style={styles.numberText}>2</Text></TouchableOpacity>
-        </View>
-
-        <View style={{width:"32%",marginRight:'1%'}}>
-        <TouchableOpacity style={styles.numberStyle1} onPress={()=>handleInputs("3")}><Text style={styles.numberText}>3</Text></TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.buttonstyle}>
-        <View style={{width:"32%",marginRight:'1%'}}>
-        <TouchableOpacity style={styles.numberStyle1} onPress={()=>handleInputs("4")}><Text style={styles.numberText}>4</Text></TouchableOpacity>
-        </View>
-        <View style={{width:"32%",marginRight:'1%'}}>
-        <TouchableOpacity style={styles.numberStyle1} onPress={()=>handleInputs("5")}><Text style={styles.numberText}>5</Text></TouchableOpacity>
-        </View>
-        <View  style={{width:"32%",marginRight:'1%'}}>
-        <TouchableOpacity style={styles.numberStyle1} onPress={()=>handleInputs("6")}><Text style={styles.numberText}>6</Text></TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.buttonstyle}>
-        <View style={{width:"32%",marginRight:'1%'}}>
-          <TouchableOpacity style={styles.numberStyle1} onPress={()=>handleInputs("7")}><Text style={styles.numberText}>7</Text></TouchableOpacity>
-        </View>
-        <View style={{width:"32%",marginRight:'1%'}}>
-        <TouchableOpacity style={styles.numberStyle1} onPress={()=>handleInputs("8")}><Text style={styles.numberText}>8</Text></TouchableOpacity>
-        </View>
-        <View style={{width:"32%",marginRight:'1%'}}>
-        <TouchableOpacity style={styles.numberStyle1} onPress={()=>handleInputs("9")}><Text style={styles.numberText}>9</Text></TouchableOpacity>
-        </View>
-      </View>
-      <View style={styles.buttonstyle}>
-        <View style={{width:"32%",marginRight:'1%'}} >
-        <TouchableOpacity style={styles.numberStyle1} onPress={()=>handleInputs("0")}><Text style={styles.buttonText}>0</Text></TouchableOpacity>
-        </View>
-
-        <View style={{width:"32%",marginRight:'1%'}}>
-        <TouchableOpacity  title="Clear" onPress={clearText}style={styles.cdStyle}><Text style={styles.buttonText}>Clear</Text></TouchableOpacity>
-
-        </View>
-
-        <View style={{width:"32%",marginRight:'1%'}}>
-          
-        <TouchableOpacity title="Delete" style={styles.cdStyle} onPress={DeleteChar}><Text style={styles.buttonText}>Delete</Text></TouchableOpacity>
-
-        </View>
-
-      </View>
-
-      <View style={styles.buttonstyle}>
-        <View style={{width:"32%",marginRight:'1%'}}>
-        <TouchableOpacity disabled={discountedPrice} title="Calculate" onPress={discountFunc}style={styles.calculateStyle}><Text style={styles.buttonText} >Calculate</Text></TouchableOpacity>
-        </View>
-        <View style={{width:"32%",marginRight:'1%'}}>
-        <TouchableOpacity  title="Save"  style={styles.saveColor} onPress={()=>{addToHistory()}}><Text style={styles.buttonText}>Save</Text></TouchableOpacity>
-
-        </View>
-        <View style={{width:"32%",marginRight:'1%'}}>
-        <TouchableOpacity  title="History"  style={styles.saveColor}><Text style={styles.buttonText}>History</Text></TouchableOpacity>
-        </View>
-      </View>
-      {/* <View>
-        <Modal isVisible={modalVisible}>
-          <View>
-  <View style={{backgroundColor:'white',height:'60%',width:'100%'}}><View><Text style={{textAlign:'center', fontSize:29,color:'black', fontWeight:'bold', textAlign:'center'}}>History</Text>{history.map((historyNum,index) =>
-  <Text style={{textAlign:'center', marginTop:'3%'}}>{index}.  Price:  {history[0]}   Discount:  {history[1] }   New Price: {history[2]}</Text>
-  )}</View>
-            <View style={{width:'32%', position:'absolute', left:'66%', top:'83%'}}>
-            <TouchableOpacity title="Hide modal" color="#001529" onPress={()=>{setModalVisible(!modalVisible)}} /></View></View>
-          </View>
-        </Modal>
-    </View> */}
-      <StatusBar style="auto" />
     </View>
 
   );
 }
+const MyComponent = ({route}) => {
+  var ar=route.params.history;
+  const [list,setList]=useState(ar);
 
-const styles = StyleSheet.create({
+  console.log(list);
+
+  const removeItem =(index)=>{
+    let NewArray = [...list];
+    NewArray.splice(index, 1);
+    setList(NewArray);
+
+  }
+
+  const clearItems =()=>{
+    setList(c);
+
+  }
+
+  return (
+    <View>
+      <View>
+      <TouchableOpacity   
+        style={styles.clear}
+        activeOpacity={0.2} 
+        onPress={()=>{clearItems()}}
+        //disabled={clearButton}
+        >
+        <Text style={styles.buttonText}>CLEAR</Text></TouchableOpacity>
+      </View>
+  
+    <DataTable>
+        <DataTable.Header>
+            <DataTable.Title >S.No</DataTable.Title>
+            <DataTable.Title >Price</DataTable.Title>
+            <DataTable.Title >Discount</DataTable.Title>
+            <DataTable.Title >Final Price</DataTable.Title>
+            
+        </DataTable.Header>
+        
+        {list.map(((values, index) =>
+            <DataTable.Row>
+                <DataTable.Cell >{index + 1}</DataTable.Cell>
+                <DataTable.Cell >    {values[0]}</DataTable.Cell>
+                <DataTable.Cell>       {values[1]}% </DataTable.Cell>
+                <DataTable.Cell numeric>{values[2]}</DataTable.Cell>
+                <DataTable.Cell ><Button
+                    title="X"          
+                    onPress={() => removeItem(list.index)}></Button>
+                </DataTable.Cell>
+            </DataTable.Row>
+        ))}
+    </DataTable>
+</View>
+  );
+}
+
+  const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    width:"100%",
+    backgroundColor:"white",
     alignItems: "center",
     justifyContent: "center",
-  },
+    backgroundColor:'#008B8B',
 
-  textinput: {
-    borderLeftWidth: 2,
-    borderRightWidth: 2,
-    borderTopWidth: 2,
-    borderBottomWidth: 2,
-    height: 40,
-    width: 100,
-    borderColor:"red",
-    marginBottom: 3,
+  },
+  textStyle: {
+    fontWeight:'bold',
+    color:'white',
   },
 
   buttonstyle: {
     flexDirection: "row",
-    width: "100%",
     alignItems:"center",
+    alignContent:'center',
     flexDirection: "row",
-  },
-
-  title:{
-    backgroundColor:"green",
-    color:"white",
-    fontWeight:"bold",
-    fontSize:20,
-    padding:10,
+    justifyContent:'space-between',
+    margin:1
   },
 
 buttonText:{
     color:'#fff',
     textAlign:"center",
-    paddingLeft : 10,
-    paddingRight : 10
-  
+    fontWeight:'bold',
+    //width:100,
 },
-buttonStyle1:{
-  marginRight:4,
-  marginLeft:4,
-  marginTop:10,
-  paddingTop:10,
-  paddingBottom:10,
-  backgroundColor:'#1E6738',
+clear: {
+  margin:10,
+  backgroundColor:'blue',
+  padding:5,
+  width:80,
   borderRadius:10,
-  borderWidth: 1,
-  borderColor: '#fff'
+  marginLeft:290,
 },
-
 saveColor:{
-  marginRight:4,
-  marginLeft:4,
-  marginTop:10,
   paddingTop:10,
   paddingBottom:10,
-  backgroundColor:'#3CB371',
+  backgroundColor:'#800000',
   borderRadius:10,
   borderWidth: 1,
-  borderColor: '#fff'
+  borderColor: 'white',
+  marginLeft:2,
+  width:70
 },
-
 calculateStyle:{
-  marginRight:4,
-  marginLeft:4,
-  marginTop:10,
-  paddingTop:10,
-  paddingBottom:10,
+  padding:10,
   backgroundColor:'#483D8B',
   borderRadius:10,
   borderWidth: 1,
-  borderColor: '#fff'
-},
-
-numberText:{
-  color:'white',
-  textAlign:"center",
-  paddingLeft : 10,
-  paddingRight : 10
+  borderColor: 'white',
+  marginRight:2,
+  //width:70
 
 },
-numberStyle1:{
-marginRight:4,
-marginLeft:4,
-marginTop:10,
-paddingTop:10,
-paddingBottom:10,
-backgroundColor:'#8f130a',
-borderRadius:10,
-borderWidth: 1,
-borderColor: '#fff'
-},
-
-TextComponentStyle: {
-
-  borderRadius: 5,
-  borderWidth: 5,
-  borderColor: 'blue',
-  color: 'black',
-  backgroundColor : 'white',
-  fontSize: 20,
-  textAlign: 'center',
-  margin: 5
-},
-
-cdStyle:{
-  marginRight:4,
-  marginLeft:4,
-  marginTop:10,
-  paddingTop:10,
-  paddingBottom:10,
-  backgroundColor:'red',
+b1: {
+  backgroundColor:'lightgreen',
   borderRadius:10,
-  borderWidth: 1,
-  borderColor: '#fff'
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-  shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5
-  },
-  openButton: {
-    backgroundColor: "#F194FF",
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2
-  },
-  resultBox: {
-    top: '31%',
-  },
-  result: {
-    fontSize: 23,
-    fontWeight: 'bold',
-    color: '#001529',
-    textAlign: 'center'
-  },
+  padding:10,
+},
+
+numberStyle2:{
+  marginRight:10,
+  alignItems:'center',
+  padding:8,
+  width:80,
+  backgroundColor:'maroon',
+  borderRadius:10,
+  borderWidth:1,
+  borderColor: 'white'
   
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22
   },
+TextComponentStyle: {
+  padding:10,
+  width:250,
+  height:50,
+  borderWidth: 2,
+  borderRadius:10,
+  borderColor: '#00008B',
+  color: 'black',
+  fontWeight:'bold',
+  backgroundColor : 'white',
+  fontSize: 10,
+  textAlign: 'center',
+  margin: 10
+},
 
 });
+
+
+export default App;
