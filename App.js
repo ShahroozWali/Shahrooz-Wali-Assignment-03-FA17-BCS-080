@@ -4,7 +4,7 @@ import { StyleSheet,Text, View, TouchableOpacity, TextInput, Button} from "react
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';   
 import { DataTable} from 'react-native-paper';
-import DrawerLayout from 'react-native-gesture-handler/DrawerLayout';
+//import DrawerLayout from 'react-native-gesture-handler/DrawerLayout';
 
 
 var h = [];
@@ -48,7 +48,7 @@ function App() {
         name="StartScreen" 
         component={StartScreen}
         options={({ navigation }) => ({
-          title: "Discount Application",
+          title: "History",
           headerTitleAlign: 'center',
           headerTintColor: 'white',
           headerStyle: {
